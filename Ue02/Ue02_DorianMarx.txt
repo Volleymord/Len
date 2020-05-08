@@ -1,0 +1,100 @@
+1 Arbeiten mit Kommandos
+------------------------
+
+1. find / -mtime +1 -size +100000c -exec ls -l {} +
+	/: Starte die Suche im root-Verzeichnis, also finde alle Dateien auf dem Computer, die die Kriterien erfuellen
+	-mtime +1: Die Datei wurde zuletzt vor 1*24 Stunden bearbeitet. Dabei werden Anteile von 24 Stunden ignoriert, also muss die Datei tatsaechlich vor zwei oder mehr Tagen bearbeitet worden sein
+	-size +100000c: Die Datei muss mindestens 100 kB = 100*1000 B groß sein. Beachte: Die Option +100k gibt die Dateigroesse in Kibibytes an. Ein Kibibyte sind 1 KiB = 1024 B.
+	-exec ls -l {} +: Ausgabe der Ergebnisse mit ls -l
+
+2. find / -mtime +1 -size +100000c -exec ls -l {} + &> filename
+	&>: Ausgabeumleitung von stdout und stderr in einem
+	filename: Name der Datei, in die die Ausgabe geschrieben werden soll
+
+3. -- Skript --
+	#!/bin/bash
+	filename="/tmp/find_uebung_$$.txt"					# Variable fuer Dateinamen setzen
+	find /tmp -mtime +1 -size +100000c -exec ls -l {} + &> ${filename}	# Aufgabe ausfuehren
+	chmod 400 ${filename}							# Rechte der Datei aendern
+	cat ${filename}								# Datei ausgeben
+	exit $?									# exit-Status des letzten Kommandos an ausfuehrende Shell uebergeben
+
+4. Vor dem Ausfuehren von find mit Ausgabeumleitung muss eine umask gesetzt werden:
+	umask 0377	Owner kann lesen
+	Soll der Owner noch mehr koennen als nur lesen, muss dies angepasst werden:
+	umask 0277	Owner kann lesen und ausfuehren
+	umask 0177	Owner kann lesen und schreiben
+	umask 0077	Owner kann alles
+
+5. Man kann auch eine Kopie mit einem anderen Namen durch Ausgabeumleitung erzeugen:
+	cat file > file_copy
+
+6. 
+	TAGESDATUM=`date`		# oder TAGESDATUM=$(date) fuer bash v2+
+	DATUM=`date +%Y%m%d`
+
+
+2 Einfache Shellprogramme mit Parameter
+---------------------------------------
+
+1. -- Skript --
+	#!/bin/bash
+	ERRMSGNOFILE="Die angegebene Datei existiert nicht. Das Skript erwartet die Ausfuehrung von SKRIPTNAME DATEINAME."
+	DIR="${HOME}/documente/"
+
+	# Ueberpruefe, ob Datei existiert. Wenn nicht, werfe einen Fehler und breche ab.
+	if [[ ! -f "$1" ]]; then
+		>&2 echo "${ERRMSGNOFILE}"
+		exit 1
+	fi
+
+	# Erzeuge den Ordner, falls er nicht existiert
+	[[ ! -d "${DIR}" ]] && mkdir "${DIR}"
+	# extrahiere den Namen der Datei, um einen Aufruf aus einem anderen Pfad als dem Dateipfad zu ermoeglichen
+	FILENAME=`basename "$1"`
+	DATUM=`date +%Y%m%d`
+	cp "$1" "${DIR}${DATUM}${FILENAME}"
+
+	exit $?
+
+2. -- Skript --
+	#!/bin/bash
+	ERRMSGINVARGS="Die uebergebenen Argumente sind ungueltig. Sie muessen das Folgende sein:\n1: Datum im Format JJJJMMTT\n2: Art\n3: Details (ohne Leerzeichen!)"
+
+	# Ueberpruefe, ob die richtige Anzahl an Argumenten uebergeben wurde und ob das erste Argument im richtigen Format ist. 
+	# Dies setzt dateutils.dconv voraus. Es gibt das Datum neu formatiert aus, wenn das Datum dem Format entspricht, das durch -i uebergeben wird. Insbesondere gibt es nichts aus, wenn das Format nicht stimmt.
+	if [[ $# != 3 || -z "$(dateutils.dconv -i %Y%m%d "$1")" ]]; then
+		>&2 echo -e "${ERRMSGINVARGS}"
+		exit 1
+	fi
+
+	# Todo anhaengen
+	echo -e "${1}\t${2}\t${3}" >> "${HOME}/.todo"
+	exit $?
+
+3. -- Skript --
+	#!/bin/bash
+
+	ERRMSGINVARGS="Unzulaessige Anzahl an Argumenten. Erwarte\n1: Dateiendung."
+	ERRMSGNOMATCH="Keine Datei hat die Endung ${1}."
+
+	SCRIPTNAME="$(basename ${BASH_SOURCE})"
+
+	if [[ "$#" != 1 ]]; then
+		>&2 echo -e "${ERRMSGINVARGS}"
+		exit 1
+	fi
+
+	# Stelle sicher, dass das Skript ausgefuehrt werden soll
+	echo -e "\e[1;31mACHTUNG\e[0m: Das Skript loescht alle Dateien, die nicht die vorgegebene Dateiendung haben. Trotzdem fortfahren? [Y/n]"
+	read -n1 -s ANSWER
+	if [[ -n "${ANSWER}" && "${ANSWER}" != "Y" && "${ANSWER}" != "y" ]]; then
+		>&2 echo "Abbruch aufgrund einer Benutzereingabe."
+		exit 2
+	fi
+
+	# Kritischer Teil: Loeschen der Dateien. 
+	# Finde die zu loeschenden Dateien, aber nie dieses Skript
+	find . \! \( -name \*.${1} -or -name "${SCRIPTNAME}" -or -name \. \) -delete
+
+	exit $?

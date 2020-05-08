@@ -1,0 +1,4 @@
+vornamen;Name;Vorname;ISPZ1127;2c0b987ecd5762ebb14e570acc7e61dc
+ramingol;Golestanian;Ramin;MA3716071;842d4bc16339fd0498fe5c52059b5387
+stefanko;Koospal;Stefan;MB334594;c1aa252f42698c4e3c75b88a773df31f
+jamesbon;Bond;James;Mn1525343;ae987bc3b97072ad26d88a325a461e63

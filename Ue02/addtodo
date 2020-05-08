@@ -1,0 +1,13 @@
+#!/bin/bash
+
+ERRMSGINVARGS="Die uebergebenen Argumente sind ungueltig. Sie muessen das Folgende sein:\n1: Datum im Format JJJJMMTT\n2: Art\n3: Details (ohne Leerzeichen!)"
+
+# Ueberpruefe, ob die richtige Anzahl an Argumenten uebergeben wurde und ob das erste Argument im richtigen Format ist. 
+# Dies setzt dateutils.dconv voraus. Es gibt das Datum neu formatiert aus, wenn das Datum dem Format entspricht, das durch -i uebergeben wird. Insbesondere gibt es nichts aus, wenn das Format nicht stimmt.
+if [[ $# != 3 || -z "$(dateutils.dconv -i %Y%m%d "$1")" ]]; then
+	>&2 echo -e "${ERRMSGINVARGS}"
+	exit 1
+fi
+
+echo -e "${1}\t${2}\t${3}" >> "${HOME}/.todo"
+exit $?

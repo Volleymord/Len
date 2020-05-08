@@ -1,0 +1,49 @@
+1 Grundlagen und Editoren
+-------------------------
+1. Ich nutze Linux zum alltäglichen Arbeiten, Programmieren und auch in der Freizeit zum Anpassen des Windowmanagers i3, den ich nutze. Gerne baue ich mein Wissen in den Bereichen Linux generell, Vim und Bash aus, da ich alles bereits gerne nutze.
+
+2. Öffnen der neuen Datei: 
+	vim probe.txt
+Die drei Zeilen schreiben:
+	i (insert mode betreten)
+	1111\n2222\n3333
+	ESC (Zurück in den  normal mode)
+	ZZ (speichern und schließen, alternativ :x)
+Datei erneut öffnen:
+	vim probe.txt
+Reihenfolge ändern:
+	G (Zum Ende der Datei springen, alternativ 2j oder jj)
+	dd (Zeile löschen)
+	gg (Zum Anfang der Datei springen, alternativ k, da es nur eine Zeile ist)
+	P (Vor dem Cursor einfügen)
+	ZZ (s.o.)
+
+3. Erläuterung:
+	d		Datei ist ein Ordner
+	2x rwx		Nutzer und Gruppe können Dateien im Verzeichnis lesen, sie (be-)schreiben und in das Verzeichnis wechseln
+	rwt		Andere können Dateien im Verzeichnis lesen, sie (be-)schreiben und in das Verzeichnis wechseln, aber nicht die Dateien/Ordner anderer löschen (wie in /tmp/)
+	2		Dieses Verzeichnis hat 2 Unterverzeichnisse
+	nobody		Name des Nutzers, der dieses Verzeichnis erstellt hat
+	nogroup		Gruppe des Nutzers, der dieses Verzeichnis erstellt hat
+	72		Dateigröße
+	Okt 19 		Erstelldatum
+	01:29		Erstellzeit
+	.font-unix	Name des Verzeichnisses
+
+4. ls -alt ~
+
+
+2 Rechte
+--------
+1. 
+drwxrwxrwt	mkdir -m 1777 test_dir		für ein neues Verzeichnis
+		chmod 1777 test_dir		für ein bestehendes Verzeichnis
+-rwsr-xr-x	chmod 4755 testfile
+-rw-r--r--	chmod 644 testfile		evtl. schon durch Standard abgedeckt
+
+2. mkdir -m 1777 test_dir
+
+3. 
+ls -l /usr/bin | less				oder
+ls -l /usr/bin | more
+

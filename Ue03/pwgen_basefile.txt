@@ -1,0 +1,4 @@
+Institution;Name;Vorname;Strasse;PLZ;Ort
+MPIDS;Golestanian;Ramin;Am Fassberg 17;37077;Goettingen
+MI;Koospal;Stefan;Bunsenstrasse 3-5;37073;Goettingen
+MI6;Bond;James;nondisclosed;12345;London
