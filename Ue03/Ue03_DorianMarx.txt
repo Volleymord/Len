@@ -1,0 +1,206 @@
+All the scripts and additional files are available at https://github.com/Volleymord/Len/tree/master/Ue03
+
+1 Script: Format a bill
+-----------------------
+
+#!/bin/bash
+
+ # upfront: The client_file and order_file are assumed to be formatted correctly. Corresponding checks have not been implemented apart from checking the occurance of the correct field separator.
+ # the calculations are performed via 'bc', the bash calculator. If python3 is available, these can be performed by using 'python3 -c <command>'.
+
+ # this script has been tested with
+ # -- client_file:
+ # 007;MI6;Bond;James;85 Albert Embankment;12345;London
+ # -- client_file END
+
+ # -- order_file:
+ # 7,3.99,Fortune cookies
+ # 2,77.32,Champagne
+ # 1,3700.00,<Undisclosed>
+ # -- order_file END
+
+USAGE="$0 client_nr order_file"
+NUMPARA=2
+
+ERRMSGINVARGS="Invalid number of parameters.\nUSAGE: ${USAGE}"
+ERRMSGNOFILE="File $2 does not exist.\nUSAGE: ${USAGE}"
+ERRMSGNOCLIENT="There is no client with number $1.\nUSAGE: ${USAGE}"
+ERRMSGINVFRM="Invalid format of order file!\nAssuming '<count>,<single price>,<description>'"
+
+client_file="${HOME}/Documents/Len/Uebungen/Ue03/client_file.txt"
+
+# parameter check
+if [[ $# != ${NUMPARA} ]]; then
+	>&2 echo -e "${ERRMSGINVARGS}"
+	exit 1
+elif [[ ! -f $2 ]]; then
+	>&2 echo -e "${ERRMSGNOFILE}"
+	exit 2
+elif [[ `grep -c "," $2` == 0 ]]; then 		# check for field seperator in order_file
+	>&2 echo -e "${ERRMSGINVFRM}"
+	exit 3
+fi
+
+# extract client data, print it in a bill type manner
+# the number must match "^<num>;" as the client numbers are at the beginning of the line (^) and are delimited by ";". This regex excludes partial matches of client numbers like "4" matching "004","040","124" and so on.
+bill_head=`\
+	cat "${client_file}" | grep "^$1;" | \
+	awk -F";" '{ printf "%s %s\n%s\n%s\n%s\n%s", $4,$3,$2,$5,$6,$7 }' \
+	`
+
+# extract bill from order_file
+# first: the summary (this is assumed to work)
+price_listing=`cat "$2" | awk -F"," 'BEGIN { print "Num\tprice\tdescription" } { printf "%s\t%s\t%s\n", $1,$2,$3 } END { print "\r" }' `
+
+# then: calculate the sum and the total and with taxes
+sum="0.00"
+while read line; do
+	calc=`echo "${line}" | awk -F"," '{ printf "scale=2;%s*%s\n", $1,$2 }' | bc `
+	
+	sum=`echo "scale=2;${sum}+${calc}" | bc`
+	# echo "$sum"
+done < "$2"
+total=`echo "scale=3;${sum}*1.19" | bc`
+
+# rounding the result: adding 0.005 and truncating
+total=`echo "scale=3;${total}+0.005" | bc`
+total=`LC_NUMERIC="en_US.UTF-8" printf %.2f "${total}"` # LC_NUMERIC is set so the decimal point is denoted by '.', not ',' as it would be on german machines
+
+
+# check if the bill head was compiled successfully
+if [[ -z ${bill_head} ]]; then
+	>&2 echo -e "${ERRMSGNOCLIENT}"
+	exit 4
+fi
+
+echo -e "${bill_head}\n\t\t$(date +%x)\n\nContent of order:\n${price_listing}\nSUM:\t${sum}\nTOTAL:\t${total}"
+
+exit $?
+
+
+2 Script: Dates of talks from JUGM
+----------------------------------
+
+#!/bin/bash
+
+# upfront: This might be acchievable way easier than I did it here. Please let me know if you found a solution you think is neat.
+
+OUTPUT_FILE="${HOME}/Documents/Len/Uebungen/Ue03/jugm_appointments.txt"
+
+# curl -s "https://www.jugm.de/" | sed 's/<[^>]*>//g' | sed 's/^[[:space:]]*//' | sed '/^[[:space:]]*$/d' | grep -A 3 "..\...\.2020"
+
+# if crossed out dates should be neglected
+results=`curl -s "https://www.jugm.de/" | \
+	grep -v "<s>" | \
+	sed 's/^[[:space:]]*//' | \
+	sed '/>[[:space:]]*$/!{N;s/\n//;}' | \
+	sed 's///' | \
+	grep -A 3 "..\...\.2020" | \
+	sed 's/<[^>]*>//g' | \
+	sed '/^[[:space:]]*$/d' | \
+	sed 's/&uuml;/ue/g' `
+
+# curl -s "https://www.jugm.de/" | \ 		get the html code
+# 	grep -v "<s>" | \			remove the crossed out results so they don't get matched
+# 	sed 's/^[[:space:]]*//' | \		remove the leading spaces
+# 	sed '/>[[:space:]]*$/!{N;s/\n//;}' | \	remove the newlines if the line does not end on a ">". 
+# 						This is needed, as the last talk is by 3 people and they are not all in one line. 
+#						This introduces a special character  (typed by pressing Ctrl+v Ctrl+m without letting Ctrl go) though.
+# 	sed 's///' | \			remove the special character
+# 	grep -A 3 "..\...\.2020" | \		the actual filter: Search for a date and print the following 3 lines from there on. 
+#						This delimits the different results by \n--\n.
+# 	sed 's/<[^>]*>//g' | \			remove all the html environments <p> and co
+# 	sed '/^[[:space:]]*$/d' | \		remove all empty lines
+# 	sed 's/&uuml;/ue/g'			change the html code for the Umlaut ue to ue
+
+# including crossed out dates, this does not work properly because of inconsistent formatting of the website. This is intended by the task though. Comment out the following to still get the working result from the code above.
+results=`curl -s "https://www.jugm.de/" | \
+	sed 's/^[[:space:]]*//' | \
+	sed '/>[[:space:]]*$/!{N;s/\n//;}' | \
+	sed 's///' | \
+	grep -A 3 "..\...\.2020" | \
+	sed 's/<[^>]*>//g' | \
+	sed '/^[[:space:]]*$/d' | \
+	sed 's/&uuml;/ue/g' `
+
+
+# now print the data in the desired format
+echo "${results}" | \
+	sed 's/^--$//' | \
+	sed '/.*/{N;s/\n/;/;}' | \
+	sed 's/\r//' | \
+	sed '/.*/{N;s/\n/;/;}' | \
+	sed 's/\([^;]\)$/\1;/' | \
+	awk -F";" '{ printf "%s;%s;%s\n", $1,$3,$2 }' \
+	> ${OUTPUT_FILE}
+
+# echo "${results}" | \						echo the results from earlier
+# 	sed 's/^--$//' | \					remove the delimiter from the different results from grep
+# 	sed '/.*/{N;s/\n/;/;}' | \				substitute the newline with a semicolon (this applies on every other line)
+# 	sed 's/\r//' | \					remove the carriage return
+# 	sed '/.*/{N;s/\n/;/;}' | \				substitute the newline with a semincolon on the remaining lines
+# 	sed 's/\([^;]\)$/\1;/' | \				add a semicolon to the last entry
+# 	awk -F";" '{ printf "%s;%s;%s\n", $1,$3,$2 }'		reorganize the entries
+
+exit $?
+
+
+3 Script: Password generator from file
+--------------------------------------
+
+#!/bin/bash
+
+# This script was tested with
+# -- base_file
+# Institution;Name;Vorname;Strasse;PLZ;Ort
+# MPIDS;Golestanian;Ramin;Am Fassberg 17;37077;Goettingen
+# MI;Koospal;Stefan;Bunsenstrasse 3-5;37073;Goettingen
+# MI6;Bond;James;nondisclosed;12345;London
+# -- END base_file
+
+USAGE="USAGE: $0 base_file"
+ERRMSGINVARGS="Invalid amount of arguments.\n${USAGE}"
+ERRMSGNOFILE="File $1 not found.\n${USAGE}"
+
+OUTPUT_FILE="${HOME}/Documents/Len/Uebungen/Ue03/pw_output.txt"
+# clear file, start fresh
+if [[ -f "$OUTPUT_FILE" ]]; then
+	echo "Clearing old output file at ${OUTPUT_FILE}."
+	rm -f "$OUTPUT_FILE"
+fi
+touch "$OUTPUT_FILE"
+
+
+# parameter check
+if [[ $# != 1 ]]; then
+	>&2 echo "${ERRMSGINVARGS}"
+	exit 1
+elif [[ ! -f $1 ]]; then
+	>&2 echo "${ERRMSGNOFILE}"
+	exit 2
+fi
+
+while read line; do
+	# generate usernames
+	name=`echo "$line" | awk -F";" '{ printf "%s;%s", $2,$3 }'`
+	name_natural=`echo "$line" | awk -F";" '{ print $3,$2 }'`
+	username=`echo "${name_natural}" | tr '[:upper:]' '[:lower:]' | sed 's/\ //g' | cut -c-8`
+	# echo "username: $username"
+	
+	# generate passwords: first and last character from everything but the name -> 4 characters + random number
+	rest=`echo "${line}" | awk -F";" '{ printf "%s\n%s\n%s\n", $1,$4,$5,$6 }' | sed 's/\ //g'`
+	pw1=`echo "${rest}" | cut -c1 | tr -d '\n'`
+	pw2=`echo "${rest: -1}" | tr -d '\n'`
+
+	pw="${pw1}${pw2}${RANDOM}"
+	# echo "pw: $pw"
+
+	# encrypt password via md5sum
+	encr_pw=`echo "$pw" | md5sum | awk '{ print $1 }'`
+	
+	# append to output file
+	echo "${username};${name};${pw};${encr_pw}" >> ${OUTPUT_FILE}
+
+done < "$1"
+
+exit $?

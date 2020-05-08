@@ -15,8 +15,7 @@ results=`curl -s "https://www.jugm.de/" | \
 	grep -A 3 "..\...\.2020" | \
 	sed 's/<[^>]*>//g' | \
 	sed '/^[[:space:]]*$/d' | \
-	sed 's/&uuml;/ue/g' \
-	`
+	sed 's/&uuml;/ue/g' `
 
 # curl -s "https://www.jugm.de/" | \ 		get the html code
 # 	grep -v "<s>" | \			remove the crossed out results so they don't get matched
@@ -32,34 +31,14 @@ results=`curl -s "https://www.jugm.de/" | \
 # 	sed 's/&uuml;/ue/g'			change the html code for the Umlaut ue to ue
 
 # including crossed out dates, this does not work properly because of inconsistent formatting of the website. This is intended by the task though. Comment out the following to still get the working result from the code above.
-# results=`curl -s "https://www.jugm.de/" | \
-# 	sed 's/^[[:space:]]*//' | \
-# 	sed '/>[[:space:]]*$/!{N;s/\n//;}' | \
-# 	sed 's///' | \
-# 	grep -A 3 "..\...\.2020" | \
-# 	sed 's/<[^>]*>//g' | \
-# 	sed '/^[[:space:]]*$/d' | \
-# 	sed 's/&uuml;/ue/g' \
-# 	`
-
-
-# further processing: Grab the location from the header
-loc=`curl -s "https://jugm.de/" | \
-	grep -m 1 "Ort" | \
+results=`curl -s "https://www.jugm.de/" | \
 	sed 's/^[[:space:]]*//' | \
+	sed '/>[[:space:]]*$/!{N;s/\n//;}' | \
+	sed 's///' | \
+	grep -A 3 "..\...\.2020" | \
 	sed 's/<[^>]*>//g' | \
-	sed 's/&uuml;/ue/g' | \
-	sed 's/&szlig;/ss/g' | \
-	sed 's/^Ort:\ //'
-	`
-
-# curl -s "https://jugm.de/" | \		get the html code again
-# 	grep -m 1 "Ort" | \			extract the line with the location
-# 	sed 's/^[[:space:]]*//' | \		remove leading spaces
-# 	sed 's/<[^>]*>//g' | \			remove all html environments again
-# 	sed 's/&uuml;/ue/g' | \			substitute ue ..
-# 	sed 's/&szlig;/ss/g' | \		.. and ss
-# 	sed 's/^Ort:\ //'			remove the leading description
+	sed '/^[[:space:]]*$/d' | \
+	sed 's/&uuml;/ue/g' `
 
 
 # now print the data in the desired format
@@ -78,7 +57,6 @@ echo "${results}" | \
 # 	sed 's/\r//' | \					remove the carriage return
 # 	sed '/.*/{N;s/\n/;/;}' | \				substitute the newline with a semincolon on the remaining lines
 # 	sed 's/\([^;]\)$/\1;/' | \				add a semicolon to the last entry
-# 	sed "s/$/${loc}/" | \					append the location to each line
-# 	awk -F";" '{ printf "%s;%s;%s;%s\n", $1,$3,$2,$4 }'	reorganize the entries
+# 	awk -F";" '{ printf "%s;%s;%s\n", $1,$3,$2 }'		reorganize the entries
 
 exit $?

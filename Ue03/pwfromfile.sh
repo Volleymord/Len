@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # This script was tested with
-# -- BEGIN base_file
+# -- base_file
 # Institution;Name;Vorname;Strasse;PLZ;Ort
 # MPIDS;Golestanian;Ramin;Am Fassberg 17;37077;Goettingen
 # MI;Koospal;Stefan;Bunsenstrasse 3-5;37073;Goettingen
