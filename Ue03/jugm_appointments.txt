@@ -1,0 +1,2 @@
+27.05.2020;GraalVM;Marco Bungart
+06.07.2020;Ultraschnelle Java In-Memory Datenbankanwendungen mit MicroStream;Markus Kett, Florian Habermann und Christian Kuemmel

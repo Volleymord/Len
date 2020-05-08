@@ -2,6 +2,8 @@
 
 # upfront: This might be acchievable way easier than I did it here. Please let me know if you found a solution you think is neat.
 
+OUTPUT_FILE="${HOME}/Documents/Len/Uebungen/Ue03/jugm_appointments.txt"
+
 # curl -s "https://www.jugm.de/" | sed 's/<[^>]*>//g' | sed 's/^[[:space:]]*//' | sed '/^[[:space:]]*$/d' | grep -A 3 "..\...\.2020"
 
 # if crossed out dates should be neglected
@@ -19,12 +21,27 @@ results=`curl -s "https://www.jugm.de/" | \
 # curl -s "https://www.jugm.de/" | \ 		get the html code
 # 	grep -v "<s>" | \			remove the crossed out results so they don't get matched
 # 	sed 's/^[[:space:]]*//' | \		remove the leading spaces
-# 	sed '/>[[:space:]]*$/!{N;s/\n//;}' | \	remove the newlines if the line does not end on a ">". this is needed, as the last talk is by 3 people and they are not all in one line. This introduces a special character  (typed by pressing Ctrl+v Ctrl+m without letting Ctrl go) though.
+# 	sed '/>[[:space:]]*$/!{N;s/\n//;}' | \	remove the newlines if the line does not end on a ">". 
+# 						This is needed, as the last talk is by 3 people and they are not all in one line. 
+#						This introduces a special character  (typed by pressing Ctrl+v Ctrl+m without letting Ctrl go) though.
 # 	sed 's///' | \			remove the special character
-# 	grep -A 3 "..\...\.2020" | \		the actual filter: Search for a date and print the following 3 lines from there on. This delimits the different results by \n--\n.
+# 	grep -A 3 "..\...\.2020" | \		the actual filter: Search for a date and print the following 3 lines from there on. 
+#						This delimits the different results by \n--\n.
 # 	sed 's/<[^>]*>//g' | \			remove all the html environments <p> and co
 # 	sed '/^[[:space:]]*$/d' | \		remove all empty lines
 # 	sed 's/&uuml;/ue/g'			change the html code for the Umlaut ue to ue
+
+# including crossed out dates, this does not work properly because of inconsistent formatting of the website. This is intended by the task though. Comment out the following to still get the working result from the code above.
+# results=`curl -s "https://www.jugm.de/" | \
+# 	sed 's/^[[:space:]]*//' | \
+# 	sed '/>[[:space:]]*$/!{N;s/\n//;}' | \
+# 	sed 's///' | \
+# 	grep -A 3 "..\...\.2020" | \
+# 	sed 's/<[^>]*>//g' | \
+# 	sed '/^[[:space:]]*$/d' | \
+# 	sed 's/&uuml;/ue/g' \
+# 	`
+
 
 # further processing: Grab the location from the header
 loc=`curl -s "https://jugm.de/" | \
@@ -52,8 +69,8 @@ echo "${results}" | \
 	sed 's/\r//' | \
 	sed '/.*/{N;s/\n/;/;}' | \
 	sed 's/\([^;]\)$/\1;/' | \
-	sed "s/$/${loc}/" | \
-	awk -F";" '{ printf "%s;%s;%s;%s\n", $1,$3,$2,$4 }'
+	awk -F";" '{ printf "%s;%s;%s\n", $1,$3,$2 }' \
+	> ${OUTPUT_FILE}
 
 # echo "${results}" | \						echo the results from earlier
 # 	sed 's/^--$//' | \					remove the delimiter from the different results from grep
