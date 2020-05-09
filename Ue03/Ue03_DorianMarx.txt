@@ -1,5 +1,7 @@
 All the scripts and additional files are available at https://github.com/Volleymord/Len/tree/master/Ue03
-There are some formatting issues with my solution of task number 2 on some file viewers. See line 109 for info on how to type the special character. All weird 'newline'-like behaviours in lines with sed originate from the special character.
+There are some formatting issues with my solution of task number 2 on some file viewers. 
+See line 111 for info on how to type the special character. 
+All weird 'newline'-like behaviours in lines with sed originate from the special character.
 
 1 Script: Format a bill
 -----------------------
