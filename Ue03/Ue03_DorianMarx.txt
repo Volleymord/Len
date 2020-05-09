@@ -1,4 +1,5 @@
 All the scripts and additional files are available at https://github.com/Volleymord/Len/tree/master/Ue03
+There are some formatting issues with my solution of task number 2 on some file viewers. See line 109 for info on how to type the special character. All weird 'newline'-like behaviours in lines with sed originate from the special character.
 
 1 Script: Format a bill
 -----------------------
@@ -105,7 +106,7 @@ results=`curl -s "https://www.jugm.de/" | \
 # 	sed 's/^[[:space:]]*//' | \		remove the leading spaces
 # 	sed '/>[[:space:]]*$/!{N;s/\n//;}' | \	remove the newlines if the line does not end on a ">". 
 # 						This is needed, as the last talk is by 3 people and they are not all in one line. 
-#						This introduces a special character  (typed by pressing Ctrl+v Ctrl+m without letting Ctrl go) though.
+#						This introduces a special character  (typed by pressing Ctrl+v Ctrl+m without letting Ctrl go) though. It appears as ^M in vi/vim, but might not be formatted similarly in the Stud.IP or GitHub file viewer.
 # 	sed 's///' | \			remove the special character
 # 	grep -A 3 "..\...\.2020" | \		the actual filter: Search for a date and print the following 3 lines from there on. 
 #						This delimits the different results by \n--\n.
