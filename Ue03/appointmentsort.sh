@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# upfront: This might be acchievable way easier than I did it here. Please let me know if you found a solution you think is neat.
+# upfront: This might be achievable way easier than I did it here. Please let me know if you found a solution you think is neat.
 
-OUTPUT_FILE="${HOME}/Documents/Len/Uebungen/Ue03/jugm_appointments.txt"
+OUTPUT_FILE="${HOME}/Documents/0_Uni/6_Sem/Len/Uebungen/Ue03/jugm_appointments.txt"
 
 # curl -s "https://www.jugm.de/" | sed 's/<[^>]*>//g' | sed 's/^[[:space:]]*//' | sed '/^[[:space:]]*$/d' | grep -A 3 "..\...\.2020"
 

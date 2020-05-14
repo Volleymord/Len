@@ -22,7 +22,7 @@ ERRMSGNOFILE="File $2 does not exist.\nUSAGE: ${USAGE}"
 ERRMSGNOCLIENT="There is no client with number $1.\nUSAGE: ${USAGE}"
 ERRMSGINVFRM="Invalid format of order file!\nAssuming '<count>,<single price>,<description>'"
 
-client_file="${HOME}/Documents/Len/Uebungen/Ue03/client_file.txt"
+client_file="${HOME}/Documents/0_Uni/6_Sem/Len/Uebungen/Ue03/client_file.txt"
 
 # parameter check
 if [[ $# != ${NUMPARA} ]]; then

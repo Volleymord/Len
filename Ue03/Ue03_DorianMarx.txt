@@ -30,7 +30,7 @@ ERRMSGNOFILE="File $2 does not exist.\nUSAGE: ${USAGE}"
 ERRMSGNOCLIENT="There is no client with number $1.\nUSAGE: ${USAGE}"
 ERRMSGINVFRM="Invalid format of order file!\nAssuming '<count>,<single price>,<description>'"
 
-client_file="${HOME}/Documents/Len/Uebungen/Ue03/client_file.txt"
+client_file="${HOME}/Documents/0_Uni/6_Sem/Len/Uebungen/Ue03/client_file.txt"
 
 # parameter check
 if [[ $# != ${NUMPARA} ]]; then
@@ -59,7 +59,6 @@ price_listing=`cat "$2" | awk -F"," 'BEGIN { print "Num\tprice\tdescription" } {
 sum="0.00"
 while read line; do
 	calc=`echo "${line}" | awk -F"," '{ printf "scale=2;%s*%s\n", $1,$2 }' | bc `
-	
 	sum=`echo "scale=2;${sum}+${calc}" | bc`
 	# echo "$sum"
 done < "$2"
@@ -86,9 +85,9 @@ exit $?
 
 #!/bin/bash
 
-# upfront: This might be acchievable way easier than I did it here. Please let me know if you found a solution you think is neat.
+# upfront: This might be achievable way easier than I did it here. Please let me know if you found a solution you think is neat.
 
-OUTPUT_FILE="${HOME}/Documents/Len/Uebungen/Ue03/jugm_appointments.txt"
+OUTPUT_FILE="${HOME}/Documents/0_Uni/6_Sem/Len/Uebungen/Ue03/jugm_appointments.txt"
 
 # curl -s "https://www.jugm.de/" | sed 's/<[^>]*>//g' | sed 's/^[[:space:]]*//' | sed '/^[[:space:]]*$/d' | grep -A 3 "..\...\.2020"
 
@@ -165,7 +164,7 @@ USAGE="USAGE: $0 base_file"
 ERRMSGINVARGS="Invalid amount of arguments.\n${USAGE}"
 ERRMSGNOFILE="File $1 not found.\n${USAGE}"
 
-OUTPUT_FILE="${HOME}/Documents/Len/Uebungen/Ue03/pw_output.txt"
+OUTPUT_FILE="${HOME}/Documents/0_Uni/6_Sem/Len/Uebungen/Ue03/pw_output.txt"
 # clear file, start fresh
 if [[ -f "$OUTPUT_FILE" ]]; then
 	echo "Clearing old output file at ${OUTPUT_FILE}."

@@ -12,7 +12,7 @@ USAGE="USAGE: $0 base_file"
 ERRMSGINVARGS="Invalid amount of arguments.\n${USAGE}"
 ERRMSGNOFILE="File $1 not found.\n${USAGE}"
 
-OUTPUT_FILE="${HOME}/Documents/Len/Uebungen/Ue03/pw_output.txt"
+OUTPUT_FILE="${HOME}/Documents/0_Uni/6_Sem/Len/Uebungen/Ue03/pw_output.txt"
 # clear file, start fresh
 if [[ -f "$OUTPUT_FILE" ]]; then
 	echo "Clearing old output file at ${OUTPUT_FILE}."
