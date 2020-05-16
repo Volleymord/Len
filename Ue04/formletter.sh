@@ -3,7 +3,7 @@
 # used basefile:
 # -- BEGIN basefile
 # 001;Frau;Marie;Curie
-# 002;Herr;Erwin;Schrödinger
+# 002;Herr;Erwin;Schroedinger
 # 007;Herr;James;Bond
 # -- END basefile
 
