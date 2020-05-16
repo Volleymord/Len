@@ -1,0 +1,190 @@
+1 Noch etwas Shellprogrammieren
+-------------------------------
+1.1 Form letter
+---------------
+
+
+#!/bin/bash
+
+# used basefile:
+# -- BEGIN basefile
+# 001;Frau;Marie;Curie
+# 002;Herr;Erwin;Schrödinger
+# 007;Herr;James;Bond
+# -- END basefile
+
+NARGS=1
+USAGE="$0 csv_file"
+
+ERRMSGINVARGS="Invalid number of arguments. Expecting 1. \nUSAGE: ${USAGE}"
+ERRMSGNOFILE="File $1 not found. \nUSAGE: ${USAGE}"
+ERRMSGINVFILE="File $1 is invalid. CSV file must use the field seperator ';'."
+
+# parameter check
+if [[ $# > ${NARGS} || $# == 0 ]]; then
+	>&2 echo -e "${ERRMSGINVARGS}"
+	exit 1
+elif [[ ! -f "$1" ]]; then
+	>&2 echo -e "${ERRMSGNOFILE}"
+	exit 2
+fi
+
+# check if file is formatted correctly
+filename=`basename -- "${1}"`
+extension=${filename##*.}
+if [[ "${extension}" != "csv" || -z `grep ';' "$1"` ]]; then
+	>&2 echo -e "${ERRMSGINVFILE}"
+	exit 3
+fi
+
+# write the repeating text into variables
+HEAD="Sehr geehrte"
+BODY=",\nden Beitrag fuer Ihre Mitgliedschaft\nziehen wir in Kuerze ein. Ihre Mitgliedsnummer\nist: "
+FOOT="\nmit freundlichen Gruessen\nDer Vorstand\n"
+
+cat "$1" | \
+	awk -F ";" \
+	-v HEAD="$HEAD" -v BODY="$BODY" -v FOOT="$FOOT" \
+	'{ if ($2 ~ /.*r$/) \
+		printf "%sr %s %s %s%s%s%s\n", HEAD,$2,$3,$4,BODY,$1,FOOT ;\
+	else
+		printf "%s %s %s %s%s%s%s\n", HEAD,$2,$3,$4,BODY,$1,FOOT ;\
+	}'
+
+# cat "$1" | \									Output the file
+# 	awk -F ";" \								field separator ;
+# 	-v HEAD="$HEAD" -v BODY="$BODY" -v FOOT="$FOOT" \			take the variables from the shell
+# 	'{ if ($2 ~ /.*r$/) \							if the form of address matches '.*r$' so ends with a r (Herr, Mr)
+# 		printf "%sr %s %s %s%s%s%s\n", HEAD,$2,$3,$4,BODY,$1,FOOT ;\	append a r to 'Sehr geehrte'
+# 	else									else: Female reciever
+# 		printf "%s %s %s %s%s%s%s\n", HEAD,$2,$3,$4,BODY,$1,FOOT ;\	no appendage needed
+# 	}'
+
+exit $?
+
+
+1.2 textfile to ics
+-------------------
+# Upfront: The output of this was checked via Thunderbird Daily on login.math.uni-goettingen.de 
+# and via https://icalendar.org/validator.html
+
+# To do the same copy your ics file to your account on the server via
+# scp file.ics user.name@login.math.uni-goettingen.de:/home/user.name/file.ics
+# substituting file.ics with your ics file name and user.name with your username 
+# logging in:
+# ssh -X user.name@login.math.uni-goettingen.de
+# There launch thunderbird and select "Events and Tasks" in the menu bar. 
+# After that select "Import..." and select the ics file in your home directory.
+# Check if everything worked and you're done.
+# Anyways let's start with the actual script:
+
+#!/bin/bash
+
+# Used source of the events:
+# -- BEGIN events
+# Do 21.12.
+# 10.00 Agla I
+
+# 12.00 Algebra
+
+# 14.00 Oberseminar
+# Fr 22.12.
+# 10.00 Diff I
+
+# 12.00 Numerik
+# -- END events
+
+OUTPUTFILE="custom_calender.ics"
+
+USAGE="$0 eventfile"
+
+ERRMSGINVARGS="Invalid amount of arguments. Expecting 1.\nUSAGE: ${USAGE}"
+ERRMSGINVFMT="Invalid format of file $1."
+
+# Write recurring strings in variables
+HEAD="BEGIN:VCALENDAR\nPRODID:-//K Desktop Environment//NONSGML KOrganizer 3.5.3//EN\nVERSION:2.0"
+BEGIN="BEGIN:VEVENT\nDTSTAMP:`date +%Y%m%dT%H%M%SZ`\nORGANIZER;CN=Stefan Koospal:MAILTO:\nCREATED:`date +%Y%m%dT%H%M00Z`"
+SEQ="SEQUENCE:0\nLAST-MODIFIED:`date +%Y%m%dT%H%M00Z`"
+CLASS="CLASS:PUBLIC\nPRIORITY:5"
+END="TRANSP:OPAQUE\nEND:VEVENT"
+FOOT="END:VCALENDAR"
+
+# Write function to change between outputting to stdout or writing to file easily
+# Mind that when using the first option the last action in this script i.e. the line ending conversion
+# is not needed. Comment out these lines if using the first option.
+WRITE () {
+	# echo -e $*
+	echo -e $* >> ${OUTPUTFILE}
+}
+
+# ----------
+
+# Clear outputfile
+if [[ -f ${OUTPUTFILE} ]]; then
+	rm -i "${OUTPUTFILE}"
+fi
+
+# Parameter check
+if [[ $# != 1 ]]; then
+	>&2 echo -e "${ERRMSGINVARGS}"
+	exit 1
+fi
+
+# Write reformatted file into variable TEXT
+# This makes each line with the date take the format 2020MMDD and removes the dot in the time as well
+# as removing empty lines
+TEXT=`cat $1 | \
+	sed '/^$/d' | \
+	sed 's/^[MDFSTW][oiuehra]\ \([0-3][0-9]\)\.\([01][0-9]\)\.$/2020\2\1/' | \
+	sed 's/^\([0-2][0-9]\)\./\1/' `
+
+# Create a buffer variable for the date
+DATEBUFFER=""
+
+# Write the head of the ics file
+WRITE "${HEAD}"
+
+# Process TEXT line by line
+echo "${TEXT}" | while read line; do
+	# Update the DATEBUFFER if a date is encountered
+	if [[ $line =~ ^2020[01][0-9][0-3][0-9]$ ]]; then
+		DATEBUFFER=$line
+
+	# In the lines with the events
+	elif [[ $line =~ ^[012][0-9][0-5][0-9][[:space:]]+ ]]; then
+		# Extract summary and time of the event
+		SUMMARY=`echo "$line" | awk '{ for (i = 2; i < NF; i++) printf $i " "; print $NF}'`
+		TIME=`echo "$line" | awk '{ print $1 }'`
+		# Write the ics FILE
+		WRITE "${BEGIN}"
+		# Create a unique identifier
+		WRITE "UID:KOrganizer-${DATEBUFFER}.${RANDOM}"
+		WRITE "${SEQ}"
+		WRITE "SUMMARY:${SUMMARY}"
+		WRITE "${CLASS}"
+		WRITE "DTSTART:${DATEBUFFER}T${TIME}00Z"
+		# The end time of the event is assumed to be 2 hours after the start for every event
+		ENDTIME=$((TIME + 200))
+		WRITE "DTEND:${DATEBUFFER}T${ENDTIME}00Z"
+		# Write the end block of the single event
+		WRITE "${END}"
+	else
+		# In this case the format is messed up somehow
+		>&2 echo -e "When parsing '${line}':\n${ERRMSGINVFMT}"
+		exit 2
+	fi
+done
+# Append the footer of the ics file
+WRITE "${FOOT}"
+
+# References:
+# Regex matching in if: https://stackoverflow.com/a/18710850
+# Print everything but the first field in awk: https://stackoverflow.com/a/7918051
+
+# As https://icalendar.org/validator.html expects CRLF as line endings, change the \n to \r\n:
+# If you see a linebreak in the line below this one: There is a character (printed as ^M in vim). 
+# It can be typed by pressing Ctrl+v and then Ctrl+m without letting Ctrl go.
+OUT=`cat "${OUTPUTFILE}" | sed "s/$//" `
+echo "${OUT}" > ${OUTPUTFILE}
+
+exit $?	
