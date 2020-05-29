@@ -1,0 +1,105 @@
+All files and scripts are available at https://www.github.com/Volleymord/Len/tree/master/Ue05/
+
+1 Dateiablage und Filesystem
+----------------------------
+
+1.1
+filesystem	central field of application	main property
+ISO 9660	CD-ROM				unix and DOS compatibility, old
+ext2		solid-state drives		non-journaling -> fewer writes
+ext4		hard drives			journaling
+FAT32		flash drives			widely supported (across OS)
+exFAT		flash drives			can store files >= 4 GiB (unlike FAT32)
+SquashFS	read-only FS			read-only, compressed
+ZFS		servers, clusters		transactional
+
+
+1.2 file system check (fsck)
+
+1.3 
+	journaling
+	faster than ext3
+	supports very large single files <= 16 TiB
+	backwards compatible to ext2, ext3
+
+1.4 dd if=/dev/sdb1 of=$HOME bs=512 count=1
+
+2 Bash Programmierung
+---------------------
+
+# The script was tested using the following files
+# -- BEGIN syslog_1.txt
+LINEV : 237.6 Volts
+LINEV : 232.8 Volts
+LINEV : 128.1 Volts
+LINEV : 080.7 Volts
+LINEV : 300.0 Volts
+# -- END syslog_1.txt
+# -- BEGIN syslog_2.txt
+LINEV : 237.6 Volts
+LINEV : 232.8 Volts
+LINEV : 128.1 Volts
+LINEV : 300.0 Volts
+# -- END syslog_2.txt
+# -- BEGIN syslog_3.txt
+LINEV : 237.6 Volts
+LINEV : 232.8 Volts
+LINEV : 128.1 Volts
+LINEV : 080.7 Volts
+LINEV : 080.6 Volts
+# -- END syslog_3.txt
+
+# -- BEGIN voltage_extract.sh
+#!/bin/bash
+
+USAGE="USAGE: $0"
+
+ERR_NUM_PARA=1
+ERR_NO_FILES=2
+declare -a ERRMSG
+ERRMSG[$ERR_NUM_PARA]="Invalid amount of parameters."
+ERRMSG[$ERR_NO_FILES]="No files matching 'syslog*' found."
+
+# -------
+
+# parameter check
+if [[ $# != 0 ]]; then
+	>&2 echo $USAGE
+	>&2 echo ${ERRMSG[$ERR_NUM_PARA]}
+	exit $ERR_NUM_PARA
+fi
+
+files=`ls syslog*`
+if [[ -z "$files" ]]; then
+	>&2 echo ${ERRMSG[$ERR_NO_FILES]}
+	exit $ERR_NO_FILES
+fi
+
+echo -e "file\t\tmax\tmin"
+for file in $files; do
+	volts=`cat "$file" | awk '{ print $3 }' | sort -n`
+	min=`echo "$volts" | head -n1`
+	max=`echo "$volts" | tail -n1`
+	echo -e "${file}\t${max}\t${min}"
+done
+
+exit $?
+# -- END voltage_extract.sh
+
+
+3 Prozesse
+----------
+3.1.1 Printing the process tree, showing dependend processes visually
+3.1.2 list open files, used to check everything is closed before unmounting and disconnecting file systems
+
+3.2
+	<C-Z> 	# to stop the currently running process (assuming it was launched in the current shell)
+	# otherwise if the PID is known (find out using ps/pidof/pgrep/..)
+	kill -19 $PID	# sends SIGSTOP to the process with the pid $PID. Alternatively: kill -SIGSTOP $PID
+			# stopped jobs can be shown with the "jobs" command.
+	bg		# moves the process to the background. This displays a number in brakets and the PID
+	fg		# this moves the process to the foreground again. 
+			# If the number in the last step is not 1 fg <num> should be used instead, 
+			# otherwise the 'shell's notion of the current job is used' (from fg --help)
+
+3.3 /etc/crontab is not visible for me
