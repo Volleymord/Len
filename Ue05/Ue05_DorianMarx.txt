@@ -102,4 +102,47 @@ exit $?
 			# If the number in the last step is not 1 fg <num> should be used instead, 
 			# otherwise the 'shell's notion of the current job is used' (from fg --help)
 
-3.3 /etc/crontab is not visible for me
+3.3
+## -- BEGIN /etc/crontab
+# /etc/crontab: system-wide crontab
+# Unlike any other crontab you don't have to run the `crontab'
+# command to install the new version when you edit this file
+# and files in /etc/cron.d. These files also have username fields,
+# that none of the other crontabs do.
+
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+# *  *  *  *  * user-name command to be executed
+17 *	* * *	root	cd / && run-parts --report /etc/cron.hourly
+25 6	* * *	root	test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.daily )
+47 6	* * 7	root	test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.weekly )
+52 6	1 * *	root	test -x /usr/sbin/anacron || ( cd / && run-parts --report /etc/cron.monthly )
+#
+# -- END /etc/crontab
+
+1st column	minute
+2nd column	hour
+3rd column	day
+4th column	month
+5th column	weekday (0 = Sunday)
+		... after which the command is run. In the syntax of 'date': %M %H   %d %m %w
+user-name	user name
+command
+		cd /
+			Change directory to root
+		test -x /usr/sbin/anacron
+			tests if /usr/sbin/anacron exists and execute permission is granted
+		||
+			means or, so ( cd ... ) gets executed if 'test' returns a non-zero value
+		run-parts
+			runs all executable files in the given working directory (see 'man run-parts')
+			--report prints the script name to stdout/stderr, wherever the first output occurs
+		/etc/cron.*
+			directories that contain the scripts to be executed daily, weekly or monthly
+
+This means the following is performed
+17 minutes past each hour all scripts in /etc/cron.hourly are run
+At 06:25 each day 	  		 /etc/cron.daily	  unless /usr/sbin/anacron exists and is executable for root
+At 06:47 each sunday			 /etc/cron.weekly	  unless /usr/sbin/anacron exists and is executable for root
+At 06:52 each month			 /etc/cron.monthly	  unless /usr/sbin/anacron exists and is executable for root
