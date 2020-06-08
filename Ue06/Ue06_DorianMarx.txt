@@ -1,0 +1,59 @@
+1 OSI
+-----
+1. Model for describing networks
+Layer 1	Physical layer, raw data transmitted over cable, ...
+Layer 2	Data Link layer, compartmentalizes bits into packages, adds checksum, ...
+Layer 3	Network layer, sending packages from node to node
+Layer 4	Transport layer, flow control, (de-)segmentation, error control
+Layer 5	Session layer, adds check points for synchronizing data exchange
+Layer 6	Presentation layer, translation to system independently readable format, data compression
+Layer 7	Application layer, IO, functionality
+
+2. TCP/IP has a single layer for the OSI layers 5-7. Also the first two layers are merged into one.
+
+3. The IP address consists of two parts: The prefix which determines the network and the suffix which determines the host.
+
+4.
+Class A network: prefix of IP address starts with 0,   network determined by first byte
+Class B network: prefix of IP address starts with 01,  network determined by first 2 bytes
+Class C network: prefix of IP address starts with 110, network determined by first 3 bytes
+
+5. Private networks are networks that have no connection to the internet. They are routed locally.
+
+6.1 
+IP in binary: 11000000.10101000.00000010.01010111
+ip a add 192.168.2.87/26 dev eth0
+	a		address
+	add		adding
+	192.168.2.87	the specified address
+	/		separates network address and netmask
+	27		the netmask: the first 27 bits are set (255.255.255.224)
+			This means there is space for 32 hosts.
+6.2 Before that one might has to become root.
+6.3 
+Network address: 	192.168.2.87	11000000.10101000.00000010.01010111
+netmask: 		255.255.255.224	11111111.11111111.11111111.11100000 
+broadcast address: 	192.168.2.95	11000000.10101000.00000010.01011111
+
+7. Routing decisions are made with the help of the routing table as follows:
+	The prefix of the address is searched in the routing table. If a match occurs, the specified address is the next hop.
+	If no match occurs, the default address is the next hop (the router).
+
+8.
+	To set a route: ip r add {network/mask} dev eth0
+	The target host must have configured the route correctly as well
+
+9.
+Private class C network: 	192.168.1.0 		11000000.10101000.00000001.00000000
+Network addresses: 		192.168.1.0		11000000.10101000.00000001.00000000
+				192.168.1.128		11000000.10101000.00000001.10000000
+Netmask:			255.255.255.128		11111111.11111111.11111111.10000000
+Broadcast address:		192.168.1.127		11000000.10101000.00000001.01111111
+Range of host addresses:	192.168.1.0   to 192.168.1.127
+				192.168.1.128 to 192.168.1.255
+
+10. ???
+
+11. Route to a router manually because private networks are not connected to the internet by nature. Also route from the router to the networks.
+
+12. Routing table: ???
