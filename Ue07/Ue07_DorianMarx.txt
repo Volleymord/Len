@@ -1,0 +1,112 @@
+All files are available at https://www.github.com/volleymord/Len/tree/master/Ue07/
+The scripts ip2bin.sh and bin2ip.sh from last weeks Ue06 were again very helpful for this problem sheet. They are in the repo mentioned above.
+
+1 Netzwerke
+-----------
+1.1 ip add a 172.30.0.1/23
+1.2
+net address 		172.30.0.0	10101100.00011110.00000000.00000000
+netmask			255.255.254.0	11111111.11111111.11111110.00000000
+broadcast address	172.30.1.255	10101100.00011110.00000001.11111111
+
+2.1
+net address		192.168.100.0	11000000.10101000.01100100.00000000
+			192.168.100.8	11000000.10101000.01100100.00001000
+net mask		255.255.255.248	11111111.11111111.11111111.11111000
+broadcast		192.168.100.7	11000000.10101000.01100100.00000111
+			192.168.100.15	11000000.10101000.01100100.00001111
+
+3.
+134.76.0.0	10000110.01001100.00000000.00000000	Class B
+10.0.0.0	00001010.00000000.00000000.00000000	Class A
+172.30.0.0	10101100.00011110.00000000.00000000	Class B
+192.168.100.0	11000000.10101000.01100100.00000000	Class C
+
+
+2 bash Funktionen
+-----------------
+An appropriate location for the log file depends on the intended use of the logfile and whether or not the user is root.
+If the user is root and the log file can be read-only for others of the same group the log file could be stored at /var/log/error.log with the other log files of the system. If not, ${HOME}/error.log should be sufficient. To make the log file accessible by others /tmp/error.log is another option.
+
+# -- BEGIN errorfunc.sh
+#!/bin/bash
+
+errorfunction () {
+	# define the log file. If it does not exist, change that.
+	LOGFILE=/tmp/error.log
+	[[ ! -f $LOGFILE ]] && touch $LOGFILE
+
+	# descriptive variable names
+	LVL=$1
+	TXT=$2
+	ACTION=$3
+
+	# parameter checks, exit with code not in {0..255} if it fails
+	if [[ $# != 3 ]]; then
+		>&2 echo "errorfunction: Invalid amount of parameters: $#."
+		exit -1
+	elif [[ $LVL -lt 0 || $LVL -gt 255 ]]; then
+		>&2 echo "errorfunction: Invalid errorlevel '$LVL'."
+		exit -2
+	elif [[ $ACTION != "CONT" && $ACTION != "EXIT" ]]; then
+		>&2 echo "errorfunction: Invalid action '$ACTION'."
+		exit -3
+	fi
+
+	# create time stamp, append to the logfile
+	STAMP=`date --iso-8601='ns'`
+	echo "${STAMP} ${ACTION} ${LVL} ${TXT}" >> $LOGFILE
+
+	# exit/return depending on action
+	if [[ $ACTION == "EXIT" ]]; then
+		exit ${LVL}
+	else
+		return ${LVL}
+	fi
+}
+
+# test function not used if the last line in this script is commented out
+test_it () {
+	# this wont work
+	# errorfunction -1 TEXT EXIT
+	# errorfunction 2 TEXT CONTINUE
+
+	# this should work
+	errorfunction 241 cont_txt CONT
+	errorfunction 240 exit_txt EXIT
+
+	exit $?
+}
+
+# uncomment to test the errorfunction
+# test_it
+
+# IMPORTANT: no exit here. That would mess up the importing of the function into other scripts.
+# -- END errorfunc.sh
+
+Implementing this into another bash script (date_cp.sh from the second problem sheet)
+
+# -- BEGIN date_cp.sh
+#!/bin/bash
+
+ERRMSGNOFILE="Die angegebene Datei existiert nicht. Das Skript erwartet die Ausfuehrung von SKRIPTNAME DATEINAME."
+DIR="${HOME}/documente/"
+
+# assuming errorfunc.sh is in the same directory as this script. If not, supply full path.
+. errorfunc.sh
+
+# Ueberpruefe, ob Datei existiert. Wenn nicht, werfe einen Fehler und breche ab.
+if [[ ! -f "$1" ]]; then
+	>&2 echo "${ERRMSGNOFILE}"
+	errorfunction 1 date_cp.sh:ERRNOFILE EXIT 
+fi
+
+# Erzeuge den Ordner, falls er nicht existiert
+[[ ! -d "${DIR}" ]] && mkdir -v "${DIR}"
+# extrahiere den Namen der Datei, um einen Aufruf aus einem anderen Pfad als dem Dateipfad zu ermoeglichen
+FILENAME=`basename "$1"`
+DATUM=`date +%Y%m%d`
+cp "$1" "${DIR}${DATUM}${FILENAME}"
+
+exit $?
+# -- END date_cp.sh
