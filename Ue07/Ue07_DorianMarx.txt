@@ -41,15 +41,17 @@ errorfunction () {
 	TXT=$2
 	ACTION=$3
 
+	USAGE="USAGE: errorfunction error_level(0-255) error_text [EXIT/CONT]"
+
 	# parameter checks, exit with code not in {0..255} if it fails
 	if [[ $# != 3 ]]; then
-		>&2 echo "errorfunction: Invalid amount of parameters: $#."
+		>&2 echo -e "errorfunction: Invalid amount of parameters: $#.\n${USAGE}"
 		exit -1
 	elif [[ $LVL -lt 0 || $LVL -gt 255 ]]; then
-		>&2 echo "errorfunction: Invalid errorlevel '$LVL'."
+		>&2 echo -e "errorfunction: Invalid errorlevel '$LVL'.\n${USAGE}"
 		exit -2
 	elif [[ $ACTION != "CONT" && $ACTION != "EXIT" ]]; then
-		>&2 echo "errorfunction: Invalid action '$ACTION'."
+		>&2 echo -e "errorfunction: Invalid action '$ACTION'.\n${USAGE}"
 		exit -3
 	fi
 
