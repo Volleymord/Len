@@ -43,6 +43,10 @@ broadcast address: 	192.168.2.95	11000000.10101000.00000010.01011111
 	To set a route: ip r add {network/mask} dev eth0
 	The target host must have configured the route correctly as well
 
+	# Koospal's solution
+	ip a add NETWORK/24 dev eth0
+	address must be ping-able
+
 9.
 Private class C network: 	192.168.1.0 		11000000.10101000.00000001.00000000
 Network addresses: 		192.168.1.0		11000000.10101000.00000001.00000000
