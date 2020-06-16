@@ -26,7 +26,7 @@ broadcast		192.168.100.7	11000000.10101000.01100100.00000111
 2 bash Funktionen
 -----------------
 An appropriate location for the log file depends on the intended use of the logfile and whether or not the user is root.
-If the user is root and the log file can be read-only for others of the same group the log file could be stored at /var/log/error.log with the other log files of the system. If not, ${HOME}/error.log should be sufficient. To make the log file accessible by others /tmp/error.log is another option.
+If the user is root and the log file can be read-only for others of the same group the log file could be stored at /var/log/error.log along with the other log files of the system. If not, /tmp/error.log is another option that makes the file accessible by other users. If the log should be user-specific ${HOME}/error.log is fine, too.
 
 # -- BEGIN errorfunc.sh
 #!/bin/bash
@@ -41,7 +41,7 @@ errorfunction () {
 	TXT=$2
 	ACTION=$3
 
-	USAGE="USAGE: errorfunction error_level(0-255) error_text [EXIT/CONT]"
+	USAGE="USAGE: errorfunction error_level error_text [EXIT/CONT], where 0 <= error_level <= 255."
 
 	# parameter checks, exit with code not in {0..255} if it fails
 	if [[ $# != 3 ]]; then
@@ -94,7 +94,7 @@ Implementing this into another bash script (date_cp.sh from the second problem s
 ERRMSGNOFILE="Die angegebene Datei existiert nicht. Das Skript erwartet die Ausfuehrung von SKRIPTNAME DATEINAME."
 DIR="${HOME}/documente/"
 
-# assuming errorfunc.sh is in the same directory as this script. If not, supply full path.
+# sourcing errorfunc.sh assuming it is in the same directory as this script. If not, supply full path.
 . errorfunc.sh
 
 # Ueberpruefe, ob Datei existiert. Wenn nicht, werfe einen Fehler und breche ab.

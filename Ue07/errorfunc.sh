@@ -10,7 +10,7 @@ errorfunction () {
 	TXT=$2
 	ACTION=$3
 
-	USAGE="USAGE: errorfunction error_level(0-255) error_text [EXIT/CONT]"
+	USAGE="USAGE: errorfunction error_level error_text [EXIT/CONT], where 0 <= error_level <= 255."
 
 	# parameter checks, exit with code not in {0..255} if it fails
 	if [[ $# != 3 ]]; then
