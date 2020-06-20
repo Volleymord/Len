@@ -1,0 +1,103 @@
+All files are available at https://www.github.com/volleymord/Len/tree/master/Ue08/
+
+Note: I did the task a little differently. 
+I did not use the email addresses themselves as the source for the names, but chose to use the actual names which are in the same line. 
+This has the advantage to include the academic titles in the mail.
+We don't want to be disrespectful when "hacking" emails!
+
+# -- BEGIN email_base.txt
+Hallo #Vorname# #Nachname#,
+
+Ihre Emailadresse #Email# wird demnaechst gesperrt.
+Geben Sie uns Username und Passwort, damit wir in Ihrem Namen boese Dinge machen koennen.
+
+mit freundlichen Gruessen
+Der Hacker
+# -- END email_base.txt
+
+# -- BEGIN mitarbeiter_hack.sh
+#!/bin/bash
+
+# sepcify output file
+file="pwned_emails.csv"
+
+# detailed explanation below
+curl -sk https://www.uni-math.gwdg.de/staff/v2/mitarbeiter.html | \
+	grep "email\">" | \
+	sed 's/^[[:space:]]*//' | \
+	sed 's/<[^>]*href[^>]*>//g' | \
+	sed 's/<[b/t][^>]*>//g' | \
+	sed 's/<span\ class=\"email\">/, /' | \
+	grep "@" | \
+	sort | \
+	uniq | \
+	awk -F", " '{ \
+	printf "%s;", $NF
+	if (NF == 4)
+		printf "%s %s;%s\n", $3, $2, $1
+	else
+		printf "%s;%s\n", $2, $1
+	}' > $file
+
+# curl -sk https://www.uni-math.gwdg.de/staff/v2/mitarbeiter.html | \	get raw data
+# 	grep "email\">" | \						search for occurance of 'email">' as to not match "by appointment (via email)"
+# 	sed 's/^[[:space:]]*//' | \					remove leading space
+# 	sed 's/<[^>]*href[^>]*>//g' | \					remove hyperlinks
+# 	sed 's/<[b/t][^>]*>//g' | \					remove <tr>, <br /> and all closing html tags
+# 	sed 's/<span\ class=\"email\">/, /' | \				replace the email tag with ", " to keep format consistent (see awk below)
+# 	grep "@" | \							exclude entries without email addresses
+# 	sort | \							sort the entries to be able to exclude doubles
+# 	uniq | \							and exclude the doubles
+# 	awk -F", " '{ \							awk with field speparator ", "
+# 	if (NF == 4)							if the person has a title (NF = # of fields) ...
+# 		printf "%s %s;%s;", $3, $2, $1				... prepend it to the first name to be in the right spot for the mail later
+# 	else								else ...
+# 		printf "%s;%s;", $2, $1					... print the names in the format first name first, last name last
+# 	printf "%s\n", $NF						print the email address ($NF is last field, so $3 or $4)
+# 	}' > $file							write all that to the file specified in the head of this script
+
+exit $?
+# -- END mitarbeiter_hack.sh
+
+# -- BEGIN compile_emails.sh
+#!/bin/bash
+
+# define files
+base="email_base.txt"
+targets="pwned_emails.csv"
+
+# test for invalid formatting of base file
+if [[ -z "`grep "#Vorname#" "$base"`" ]] || [[ -z "`grep "#Nachname#" "$base"`" ]] || [[ -z "`grep "#Email#" "$base"`" ]]; then
+	>&2 echo "Invalid format of base file $base."
+	exit 1
+# test for invalid formatting of targets file
+# this ensures there are exactly 3 fields delimited by ";" and the character "@" is in the first field
+elif [[ -n "`cat "$targets" | sed 's/^[^;]*@[^;]*;[^;]*;[^;]*$//' | tr -d '[:space:]'`" ]]; then
+	>&2 echo "Invalid format of target tile $targets."
+	exit 2
+fi
+
+# test string if you want to test this code but not blow up your terminal with MANY mails
+test_string=`head -n3 "$targets"`
+
+# go through targets file line by line
+while read line; do
+	# extract information from the fields
+	first_name=`echo "$line" | awk -F";" '{print $2}'`
+	last_name="`echo "$line" | awk -F";" '{print $3}'`"
+	email_address="`echo "$line" | awk -F";" '{print $1}'`"
+
+	# output the draft message, replacing the placeholders
+	cat "$base" | \
+		sed "s/#Vorname#/${first_name}/g" | \
+		sed "s/#Nachname#/${last_name}/g" | \
+		sed "s/#Email#/${email_address}/g"
+
+	# visually separate the different mails
+	echo "###################"
+done < "$targets"
+# just for testing:
+# done <<< "$test_string"
+
+exit $?
+# -- END compile_emails.sh

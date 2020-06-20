@@ -1,0 +1,7 @@
+Hallo #Vorname# #Nachname#,
+
+Ihre Emailadresse #Email# wird demnaechst gesperrt.
+Geben Sie uns Username und Passwort, damit wir in Ihrem Namen boese Dinge machen koennen.
+
+mit freundlichen Gruessen
+Der Hacker
