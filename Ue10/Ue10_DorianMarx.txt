@@ -1,0 +1,41 @@
+1 Noch etwas Shellprogrammieren
+-------------------------------
+1.1
+	I'm not sure how this is meant, but as I understand it one way would be
+	
+	# iterate through all programs
+	for prog in awk sed grep; do
+		echo "${prog^^}=`which "${prog}"`"
+	done
+
+	assuming the paths you are looking for are also the ones which returns for your machine.
+1.2
+	Export the generated list to a file
+	source the file in your script using
+		. /path/to/file/sources.sh
+
+2 Drucken
+---------
+1	cat FILE > /dev/PRINTERNAME
+2	yes
+3	apply filters to indent text/convert it
+
+3 Netzwerk
+----------
+7	Application layer	\
+6	Presentation layer	 | browser, DNS, http
+5	Session layer		/
+4	Transport layer		TCP
+3	Network layer		IP address, network address, broadcast address, 
+2	Data link layer		ethernet adapter, switch, MAC address
+1	Physical layer 		Ethernet/LWL cable
+
+The most important thing(s) about DNS is/are ????
+
+dhcp does/is for ????
+
+4 Sicheres IP
+-------------
+1
+	VPN (virtual private network)		
+	ssh -w					application layer
